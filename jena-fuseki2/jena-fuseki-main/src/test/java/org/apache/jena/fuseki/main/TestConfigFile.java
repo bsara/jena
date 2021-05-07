@@ -297,6 +297,31 @@ public class TestConfigFile {
         }
     }
 
+    @Test public void serverTDB2_compact2_inference() {
+        if ( Sys.isWindows ) {
+            // NOTE: Skipping deletion test for windows
+            return;
+        }
+
+        int port = WebLib.choosePort();
+        FusekiServer server = server(port, "server-tdb2_compact2_inference.ttl");
+        server.start();
+        try {
+            String x1= HttpOp.execHttpGetString("http://localhost:"+port+"/$/tasks");
+            assertNotNull(x1);
+            try(TypedInputStream x2 = HttpOp.execHttpPostStream("http://localhost:"+port+"/$/compact/ds", null, "application/json")) {
+                assertNotNull(x2);
+                assertNotEquals(0, x2.readAllBytes().length);
+            } catch (IOException ex) {
+                IO.exception(ex);
+            }
+            String x3 = HttpOp.execHttpGetString("http://localhost:"+port+"/$/tasks/1");
+            assertNotNull(x3);
+        } finally {
+            server.stop();
+        }
+    }
+
     @Test public void unionGraph1() {
         unionGraph("tdb1-endpoints.ttl","/ds-tdb1");
     }
